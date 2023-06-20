@@ -38,6 +38,14 @@ class Dhttpd {
 
     final pipeline = const Pipeline()
         .addMiddleware(logRequests())
+        .addMiddleware((handler) => (request) async {
+              final response = await handler(request);
+              return response.change(headers: {
+                'Cross-Origin-Opener-Policy': 'same-origin',
+                'Cross-Origin-Embedder-Policy': 'require-corp',
+                ...response.headersAll,
+              });
+            })
         .addHandler(createStaticHandler(path, defaultDocument: 'index.html'));
 
     final server = await io.serve(pipeline, address, port);
